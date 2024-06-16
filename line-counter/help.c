@@ -8,7 +8,10 @@ typedef struct {
 } linecounter_option;
 
 static linecounter_option globalOptionList[] = {
-	{"-h", "Display this help information"}
+	{"-h",             "Display this help information"},
+	{"-x <extension>", "Specify the file extension when searching"},
+	{"-r",             "Search the directory recursively"},
+	{"-s",             "Print the number of lines for each file"}
 };
 
 void printHelpInformation(const LPCSTR programPath) {
@@ -32,7 +35,7 @@ void printHelpInformation(const LPCSTR programPath) {
 		}
 	}
 
-	longestOptionLength += 2;
+	longestOptionLength += 3;
 
 	for(size_t x = 0; x < optionLength; x++) {
 		printf("\t%s", globalOptionList[x].option);
