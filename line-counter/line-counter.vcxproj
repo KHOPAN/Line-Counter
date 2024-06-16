@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="filename.c" />
     <ClCompile Include="help.c" />
+    <ClCompile Include="linecounter.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>

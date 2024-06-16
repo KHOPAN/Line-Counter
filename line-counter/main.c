@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <khopanwin32.h>
+#include <khopanstring.h>
 #include "linecounter.h"
 
 int main(int argc, char** argv) {
@@ -57,5 +59,31 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	return 0;
+	LPWSTR wideExtension = !fileExtension ? NULL : KHFormatMessageW(L"%S", fileExtension);
+
+	if(fileExtension && !wideExtension) {
+		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		return 1;
+	}
+
+	LPWSTR wideSearchPath = !searchPath ? NULL : KHFormatMessageW(L"%S", searchPath);
+	int returnValue = 1;
+
+	if(searchPath && !wideSearchPath) {
+		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		goto freeWideExtension;
+	}
+
+	returnValue = countLine(wideExtension, recursiveSearch, separateFiles, wideSearchPath);
+
+	if(searchPath) {
+		LocalFree(wideSearchPath);
+	}
+
+freeWideExtension:
+	if(fileExtension) {
+		LocalFree(wideExtension);
+	}
+
+	return returnValue;
 }
