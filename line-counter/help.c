@@ -22,7 +22,7 @@ void printHelpInformation(const LPCSTR programPath) {
 		return;
 	}
 
-	printf("Usage: %s [options] <path>\n\nOptions:\n", programName);
+	printf("Usage: %s [options] <path> [options]\n\nOptions:\n", programName);
 	LocalFree(programName);
 	size_t optionLength = sizeof(globalOptionList) / sizeof(globalOptionList[0]);
 	size_t longestOptionLength = 0;
