@@ -12,7 +12,6 @@ int countLine(const LPCWSTR fileExtension, BOOL recursiveSearch, BOOL separateFi
 	}
 
 	WIN32_FIND_DATAW data;
-	printf("Search: %ws\n", search);
 	HANDLE searchHandle = FindFirstFileW(search, &data);
 	LocalFree(search);
 
@@ -27,11 +26,15 @@ int countLine(const LPCWSTR fileExtension, BOOL recursiveSearch, BOOL separateFi
 		wprintf(L"%d %ws\n", data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY, data.cFileName);
 	} while(noError = FindNextFileW(searchHandle, &data));
 
+	int returnValue = 1;
+
 	if(!noError && GetLastError() != ERROR_NO_MORE_FILES) {
 		KHWin32ConsoleErrorW(GetLastError(), L"FindNextFileW");
-		return 1;
+		goto closeSearchHandle;
 	}
 
+	returnValue = 0;
+closeSearchHandle:
 	FindClose(searchHandle);
-	return 0;
+	return returnValue;
 }
