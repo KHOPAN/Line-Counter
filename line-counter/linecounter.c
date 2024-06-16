@@ -52,7 +52,6 @@ int countLine(const LPCWSTR fileExtension, BOOL recursiveSearch, BOOL separateFi
 	size_t lines = 0;
 
 	if(!recursiveLineCount(fileExtension, recursiveSearch, separateFiles, path, &lines)) {
-		KHWin32ConsoleErrorW(GetLastError(), L"recursiveLineCount");
 		return 1;
 	}
 
@@ -93,7 +92,56 @@ static BOOL checkFileExtension(const LPCWSTR filePath, const LPCWSTR extension) 
 }
 
 static BOOL countFileLines(const LPCWSTR fileName, size_t* lines) {
-	(*lines)++;
+	HANDLE file = CreateFileW(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	
+	if(file == INVALID_HANDLE_VALUE) {
+		KHWin32ConsoleErrorW(GetLastError(), L"CreateFileW");
+		return FALSE;
+	}
+	
+	LARGE_INTEGER integer;
+	
+	if(!GetFileSizeEx(file, &integer)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"GetFileSizeEx");
+		CloseHandle(file);
+		return FALSE;
+	}
+
+	LPSTR buffer = LocalAlloc(LMEM_FIXED, integer.LowPart);
+
+	if(!buffer) {
+		KHWin32ConsoleErrorW(GetLastError(), L"LocalAlloc");
+		CloseHandle(file);
+		return FALSE;
+	}
+
+	DWORD bytesRead;
+
+	if(!ReadFile(file, buffer, integer.LowPart, &bytesRead, NULL)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"ReadFile");
+		LocalFree(buffer);
+		CloseHandle(file);
+		return FALSE;
+	}
+
+	if(integer.LowPart != bytesRead) {
+		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"ReadFile");
+		LocalFree(buffer);
+		CloseHandle(file);
+		return FALSE;
+	}
+
+	size_t totalLines = 0;
+
+	for(size_t i = 0; i < integer.LowPart; i++) {
+		if(buffer[i] == '\n') {
+			totalLines++;
+		}
+	}
+
+	(*lines) += totalLines;
+	LocalFree(buffer);
+	CloseHandle(file);
 	return TRUE;
 }
 
