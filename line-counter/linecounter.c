@@ -55,7 +55,10 @@ int countLine(const LPCWSTR fileExtension, BOOL recursiveSearch, BOOL separateFi
 		return 1;
 	}
 
-	printf("Lines: %llu\n", lines);
+	if(!separateFiles) {
+		printf("%s: %llu\n", lines == 1 ? "Line" : "Lines", lines);
+	}
+
 	return 0;
 }
 
@@ -91,7 +94,7 @@ static BOOL checkFileExtension(const LPCWSTR filePath, const LPCWSTR extension) 
 	return TRUE;
 }
 
-static BOOL countFileLines(const LPCWSTR fileName, size_t* lines) {
+static BOOL countFileLines(const LPCWSTR fileName, BOOL separateFiles, size_t* lines) {
 	LPWSTR longPath = KHFormatMessageW(L"\\\\?\\%ws", fileName);
 
 	if(!longPath) {
@@ -132,10 +135,11 @@ static BOOL countFileLines(const LPCWSTR fileName, size_t* lines) {
 		return FALSE;
 	}
 
+	CloseHandle(file);
+
 	if(integer.LowPart != bytesRead) {
 		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"ReadFile");
 		LocalFree(buffer);
-		CloseHandle(file);
 		return FALSE;
 	}
 
@@ -147,9 +151,14 @@ static BOOL countFileLines(const LPCWSTR fileName, size_t* lines) {
 		}
 	}
 
-	(*lines) += totalLines;
 	LocalFree(buffer);
-	CloseHandle(file);
+
+	if(!separateFiles) {
+		(*lines) += totalLines;
+		return TRUE;
+	}
+
+	wprintf(L"%ws: %llu %S\n", fileName, totalLines, totalLines == 1 ? "line" : "lines");
 	return TRUE;
 }
 
@@ -191,7 +200,7 @@ static BOOL recursiveLineCount(const LPCWSTR fileExtension, BOOL recursiveSearch
 				continue;
 			}
 
-			BOOL value = countFileLines(pathName, lines);
+			BOOL value = countFileLines(pathName, separateFiles, lines);
 
 			if(!value) {
 				returnValue = value;
