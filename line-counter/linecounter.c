@@ -92,8 +92,16 @@ static BOOL checkFileExtension(const LPCWSTR filePath, const LPCWSTR extension) 
 }
 
 static BOOL countFileLines(const LPCWSTR fileName, size_t* lines) {
-	HANDLE file = CreateFileW(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	
+	LPWSTR longPath = KHFormatMessageW(L"\\\\?\\%ws", fileName);
+
+	if(!longPath) {
+		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"FormatMessageW");
+		return FALSE;
+	}
+
+	HANDLE file = CreateFileW(longPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	LocalFree(longPath);
+
 	if(file == INVALID_HANDLE_VALUE) {
 		KHWin32ConsoleErrorW(GetLastError(), L"CreateFileW");
 		return FALSE;
